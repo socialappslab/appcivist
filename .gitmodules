@@ -1,12 +1,15 @@
 [submodule "appcivist-pb-client"]
 	path = appcivist-pb-client
 	url = https://github.com/socialappslab/appcivist-pb-client.git
+	branch = master
 [submodule "appcivist-platform"]
 	path = appcivist-platform
 	url = https://github.com/socialappslab/appcivist-platform.git
+	branch = master
 [submodule "appcivist-voting-api"]
 	path = appcivist-voting-api
 	url = https://github.com/socialappslab/appcivist-voting-api.git
+	branch = master
 [submodule "appcivist-notification-service"]
 	path = appcivist-notification-service
 	url = https://github.com/socialappslab/appcivist-notification-service
@@ -14,6 +17,7 @@
 [submodule "socialbus-bc"]
 	path = socialbus-bc
 	url = https://github.com/socialappslab/socialbus-bc
+	branch = master
 [submodule "socialbus-bc-generator"]
 	path = socialbus-bc-generator
 	url = https://github.com/socialappslab/socialbus-bc-generator
