@@ -7,3 +7,10 @@
 [submodule "appcivist-voting-api"]
 	path = appcivist-voting-api
 	url = https://github.com/socialappslab/appcivist-voting-api.git
+[submodule "appcivist-notification-service"]
+	path = appcivist-notification-service
+	url = https://github.com/socialappslab/appcivist-notification-service
+	branch = master
+[submodule "socialbus-bc"]
+	path = socialbus-bc
+	url = https://github.com/socialappslab/socialbus-bc
