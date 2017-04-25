@@ -14,3 +14,7 @@
 [submodule "socialbus-bc"]
 	path = socialbus-bc
 	url = https://github.com/socialappslab/socialbus-bc
+[submodule "socialbus-bc-generator"]
+	path = socialbus-bc-generator
+	url = https://github.com/socialappslab/socialbus-bc-generator
+	branch = master
