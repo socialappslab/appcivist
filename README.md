@@ -34,3 +34,7 @@ In partnership with the [MiMove Team](https://www.inria.fr/en/teams/mimove) at [
 Supported by [EIT Digital](https://www.eitdigital.eu/), [TUB](http://www.tu-berlin.de/), [Nexus](http://www.nexusinstitut.de/index.php/en), and [Missions Publiques](https://missionspubliques.org/).
 Contributions from [City of Vallejo](http://www.ci.vallejo.ca.us/), and [Participa Project](http://www.dei.uc.edu.py/proyectos/participa/?lang=es) at DEI/Universidad Católica de Asunción (UC).
 2017 © Regents of the University of California
+
+# License
+
+All the components of this project are open source software, distributed under the terms of the [Social Apps Lab Open Source License](LICENSE.md)
