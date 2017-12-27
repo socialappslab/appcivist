@@ -679,7 +679,7 @@ public class MyUsernamePasswordAuthProvider
 	}
 
 	public static void sendNewsletterEmail(String mail, String template) {
-		final String subject = "New Newsletter";
+		final String subject = "[Appcivist] New Newsletter";
 		final Body body = new Body(null, template);
 
 		Mailer mailer = Mailer.getCustomMailer(PlayAuthenticate.getConfiguration().getConfig("password").getConfig(

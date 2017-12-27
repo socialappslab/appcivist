@@ -55,13 +55,20 @@ public class NotificationsDelegate {
     private static String UNSUSCRIBE_URL = "UNSUSCRIBE_URL";
     private static String NEWSLETTER_NO_ACTIVITY_TEMPLATE_NAME = "conf/newsletters-templates/newsletter-backend" +
             "-template-no-activity.html";
+    private static String NEWSLETTER_NO_ACTIVITY_CSS_TEMPLATE_NAME = "conf/newsletters-templates-mails/newsletter-backend" +
+            "-template-no-activity.html";
     private static String NEWSLETTER_WITH_ACTIVITY_TEMPLATE_NAME = "conf/newsletters-templates/newsletter-backend" +
+            "-template-with-activity.html";
+    private static String NEWSLETTER_WITH_ACTIVITY_CSS_TEMPLATE_NAME = "conf/newsletters-templates-mails/newsletter-backend" +
             "-template-with-activity.html";
     private static String NEWSLETTER_PROPOSAL_TEMPLATE_NAME = "conf/newsletters-templates/newsletter-backend" +
             "-template-proposal-stage.html";
+    private static String NEWSLETTER_PROPOSAL_CSS_TEMPLATE_NAME = "conf/newsletters-templates-mails/newsletter-backend" +
+            "-template-proposal-stage.html";
     private static String LI = "<li style ='background-color: #efefef;\n" +
             "        padding: 1rem 2rem;\n" +
-            "        margin-bottom: 1rem;'>";
+            "        margin-bottom: 1rem;" +
+            "font-family: source sans pro,apple sd gothic neo,pt sans,trebuchet ms,sans-serif;'>";
 
 
     static {
@@ -625,13 +632,17 @@ public class NotificationsDelegate {
         data.put("notificationDate", notificationDate);
         data.put("associatedUser", associatedUser);
         data.put("signaled", false);
-
+        String richTemplateToMail = null;
         if (subscriptionType.equals(SubscriptionTypes.NEWSLETTER)) {
             try {
                 Map<String, Object> template = getNewsletterTemplate(originType, UUID.fromString(origin.toString()), userParam);
                 if(template.get("richText") != null) {
                     notificationEvent.setRichText(String.valueOf(template.get("richText")));
                     template.remove("richText");
+                }
+                if(template.get("richTextCss") != null) {
+                    richTemplateToMail = String.valueOf(template.get("richTextCss"));
+                    template.remove("richTextCss");
                 }
                 data.put("template", template);
 
@@ -717,8 +728,7 @@ public class NotificationsDelegate {
             Logger.info("NOTIFICATION: Signaling notification from '" + originType + "' "
                     + originName + " about '" + eventName + "'");
             if(Play.application().configuration().getBoolean("appcivist.rabbitmq.active")) {
-                Logger.info("+++++++++------------------------------------------------" + MyUsernamePasswordAuthProvider.getProvider());
-                BusComponent.sendToRabbit(newNotificationSignal, notificatedUsers, notificationEvent.getRichText());
+                BusComponent.sendToRabbit(newNotificationSignal, notificatedUsers, richTemplateToMail);
                 return Controller.ok(Json.toJson(TransferResponseStatus.okMessage("Notification signaled","")));
             } else {
                 NotificationServiceWrapper ns = new NotificationServiceWrapper();
@@ -1203,7 +1213,7 @@ public class NotificationsDelegate {
         LocalDate friday = now.withDayOfWeek(DateTimeConstants.FRIDAY);
         String week = monday.getDayOfMonth() + " " + monday.toString("MMM")
                 + " - " + friday.getDayOfMonth() + " " + friday.toString("MMM");
-        String unsuscribeUrl = Play.application().configuration().getString("newsletter.unsuscribeUrl");
+        String unsuscribeUrl = Play.application().configuration().getString("appcivist.newsletter.unsuscribeUrl");
         switch (spaceType) {
             case CAMPAIGN:
                 Campaign campaign = Campaign.readByUUID(spaceID);
@@ -1216,20 +1226,29 @@ public class NotificationsDelegate {
                 if (notificationEventSignals.isEmpty()) {
                     File file = Play.application().getFile(NEWSLETTER_NO_ACTIVITY_TEMPLATE_NAME);
                     String content = new String(Files.readAllBytes(Paths.get(file.toString())));
+                    file = Play.application().getFile(NEWSLETTER_NO_ACTIVITY_CSS_TEMPLATE_NAME);
+                    String contentCss = new String(Files.readAllBytes(Paths.get(file.toString())));
                     content = content.replaceAll(CAMPAIGN_NAME,campaign.getTitle());
                     content = content.replaceAll(DATE, week);
                     content = content.replaceAll("UNSUSCRIBE_URL",unsuscribeUrl);
+                    contentCss = contentCss.replaceAll(CAMPAIGN_NAME,campaign.getTitle());
+                    contentCss = contentCss.replaceAll(DATE, week);
+                    contentCss = contentCss.replaceAll("UNSUSCRIBE_URL",unsuscribeUrl);
                     toRet.put("campaignNewsletterDescription",campaign.getGoal());
                     if(campaign.getGoal() != null) {
                         content = content.replaceAll(CAMPAIGN_DESCRIPTION, campaign.getGoal());
+                        contentCss = contentCss.replaceAll(CAMPAIGN_DESCRIPTION, campaign.getGoal());
                     } else {
                         content = content.replaceAll(CAMPAIGN_DESCRIPTION, campaign.getTitle());
+                        contentCss = contentCss.replaceAll(CAMPAIGN_DESCRIPTION, campaign.getTitle());
                     }
                     if (stage!=null) {
                         toRet.put("stageName", stage.name());
                         content = content.replaceAll("STAGE_NAME",stage.name());
+                        contentCss = contentCss.replaceAll("STAGE_NAME",stage.name());
                     } else {
                         content = content.replaceAll("STAGE_NAME","");
+                        contentCss = contentCss.replaceAll("STAGE_NAME","");
                     }
                     List<String> themes = campaign.getThemes().stream()
                             .filter(theme -> theme.getType().equals(ThemeTypes.OFFICIAL_PRE_DEFINED))
@@ -1240,6 +1259,7 @@ public class NotificationsDelegate {
                         themesString.append(LI).append(theme).append("</li>");
                     }
                     content = content.replaceAll(THEMES, themesString.toString());
+                    contentCss = contentCss.replaceAll(THEMES, themesString.toString());
                     List<String> workingGroups = campaign.getWorkingGroups().stream().map(WorkingGroup::getName)
                             .collect(Collectors.toList());
                     toRet.put("workingGroups", workingGroups);
@@ -1248,6 +1268,7 @@ public class NotificationsDelegate {
                         wgString.append(LI).append(wg).append("</li>");
                     }
                     content = content.replaceAll(WORKING_GROUPS, wgString.toString());
+                    contentCss = contentCss.replaceAll(WORKING_GROUPS, wgString.toString());
                     List<Map<String, Object>> resourcesFormated = new ArrayList<>();
                     StringBuilder resources = new StringBuilder();
                     for(Resource con: campaign.getResourceList()) {
@@ -1260,17 +1281,26 @@ public class NotificationsDelegate {
                     }
                     toRet.put("resources", resourcesFormated);
                     content = content.replaceAll(RESOURCES, resources.toString());
+                    contentCss = contentCss.replaceAll(RESOURCES, resources.toString());
                     toRet.put("richText",content);
+                    toRet.put("richTextCss",contentCss);
                 //Campaign in Idea Collection Stage
                 } else if (stage == null) {
                     return toRet;
                 } else if (stage.equals(ComponentTypes.IDEAS)) {
                     File file = Play.application().getFile(NEWSLETTER_WITH_ACTIVITY_TEMPLATE_NAME);
                     String content = new String(Files.readAllBytes(Paths.get(file.toString())));
+                    file = Play.application().getFile(NEWSLETTER_WITH_ACTIVITY_CSS_TEMPLATE_NAME);
+                    String contentCss = new String(Files.readAllBytes(Paths.get(file.toString())));
                     content = content.replaceAll(CAMPAIGN_NAME, campaign.getTitle());
                     content = content.replaceAll(CAMPAIGN_DESCRIPTION, campaign.getGoal());
                     content = content.replaceAll(DATE, week);
                     content = content.replaceAll("UNSUSCRIBE_URL",unsuscribeUrl);
+                    contentCss = contentCss.replaceAll(CAMPAIGN_NAME, campaign.getTitle());
+                    contentCss = contentCss.replaceAll(CAMPAIGN_DESCRIPTION, campaign.getGoal());
+                    contentCss = contentCss.replaceAll(DATE, week);
+                    contentCss = contentCss.replaceAll("UNSUSCRIBE_URL",unsuscribeUrl);
+
                     List<Contribution> contributions = Contribution.findLatestContributionIdeas(campaign.getResources(),
                             newsletterFrequency);
                     List<Map<String, Object>> contributionsFormated = new ArrayList<>();
@@ -1288,7 +1318,8 @@ public class NotificationsDelegate {
                     toRet.put("newIdeas", contributionsFormated);
                     content = content.replaceAll(NEW_IDEAS_NUMBER, String.valueOf(contributionsFormated.size()));
                     content = content.replaceAll(NEW_IDEAS_TEXT, contributionsString.toString());
-
+                    contentCss = contentCss.replaceAll(NEW_IDEAS_NUMBER, String.valueOf(contributionsFormated.size()));
+                    contentCss = contentCss.replaceAll(NEW_IDEAS_TEXT, contributionsString.toString());
                     List<NotificationEventSignal> updatedIdeas = NotificationEventSignal
                             .findLatestIdeasByOriginUuid(spaceID.toString(), newsletterFrequency);
                     List<String> updatedIdeasFormat = updatedIdeas.stream().map(NotificationEventSignal
@@ -1300,14 +1331,21 @@ public class NotificationsDelegate {
                         updatesString.append(LI).append(update).append("</li>");
                     }
                     content = content.replaceAll(UPDATES, updatesString.toString());
+                    contentCss = contentCss.replaceAll(UPDATES, updatesString.toString());
                     toRet.put("richText", content);
+                    toRet.put("richTextCss", contentCss);
                     //Campaign in Proposal Stage
                 } else if(stage.equals(ComponentTypes.PROPOSALS)) {
                     File file = Play.application().getFile(NEWSLETTER_PROPOSAL_TEMPLATE_NAME);
                     String content = new String(Files.readAllBytes(Paths.get(file.toString())));
+                    file = Play.application().getFile(NEWSLETTER_PROPOSAL_CSS_TEMPLATE_NAME);
+                    String contentCss = new String(Files.readAllBytes(Paths.get(file.toString())));
                     content = content.replaceAll(CAMPAIGN_NAME,campaign.getTitle());
                     content = content.replaceAll(DATE, week);
                     content = content.replaceAll("UNSUSCRIBE_URL",unsuscribeUrl);
+                    contentCss = contentCss.replaceAll(CAMPAIGN_NAME,campaign.getTitle());
+                    contentCss = contentCss.replaceAll(DATE, week);
+                    contentCss = contentCss.replaceAll("UNSUSCRIBE_URL",unsuscribeUrl);
                     List<Map<String, Object>> contributionsFormated = new ArrayList<>();
                     List<Map<String, Object>> developingProposals = new ArrayList<>();
                     List<String> updates = new ArrayList<>();
@@ -1318,6 +1356,8 @@ public class NotificationsDelegate {
                                 .anyMatch(t -> t.getUser().getUserId().equals(user.getUserId()))) {
                             toRet.put("workingGroupName", wg.getName());
                             content = content.replaceAll(WORKING_GROUPS, wg.getName());
+                            contentCss = contentCss.replaceAll(WORKING_GROUPS, wg.getName());
+
                             for(Contribution proposal: wg.getProposals()) {
                                 Calendar calendar = Calendar.getInstance();
                                 calendar.add(Calendar.DAY_OF_MONTH, - newsletterFrequency);
@@ -1349,6 +1389,10 @@ public class NotificationsDelegate {
                                         String.valueOf(contributionsFormated.size()));
                             content = content.replaceAll(PROPOSAL_NEW, contributionsString.toString());
                             content = content.replaceAll(PROPOSAL_DEVELOPING, developingString.toString());
+                            contentCss = contentCss.replaceAll("PROPOSAL_NUMBER",
+                                    String.valueOf(contributionsFormated.size()));
+                            contentCss = contentCss.replaceAll(PROPOSAL_NEW, contributionsString.toString());
+                            contentCss = contentCss.replaceAll(PROPOSAL_DEVELOPING, developingString.toString());
 
                             break;
                         } else {
@@ -1365,7 +1409,10 @@ public class NotificationsDelegate {
                                 .append(update).append("</li>");
                     }
                     content = content.replaceAll(UPDATES, updatesString.toString());
+                    contentCss = contentCss.replaceAll(UPDATES, updatesString.toString());
+
                     toRet.put("richText", content);
+                    toRet.put("richTextCss", contentCss);
                     toRet.put("updatedWG", updates);
                 }
                 break;
