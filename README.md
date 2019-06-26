@@ -4,6 +4,7 @@
 
 The platform is composed by 4 components, described below. To learn more about each, read the [Project Documentation](#project-documentation) below.:
 
+* [AppCivist Docker Dompose](https://github.com/socialappslab/appcivist-docker-compose): docker compose and docker container images for the whole project. We recommend starting here for installing the ecosystem. 
 * [AppCivist Core Platform](https://github.com/socialappslab/appcivist-platform/): this repository contains the source code of the core backend for AppCivist. The core platform provides a RESTful API for managing User authentication, Assembly and Contribution Making. 
 * [AppCivist-PB UI](https://github.com/socialappslab/appcivist-pb-client): main User Interface of the AppCivist Project for civic engagement proccesses like participatorty budgeting or planning.
 * [AppCivist Voting API](https://github.com/socialappslab/appcivist-voting-api): prototype implementation of a Ballot Based Voting API that allows both registered and non-registered users to cast votes on AppCivist users contributions. 
@@ -12,8 +13,6 @@ The platform is composed by 4 components, described below. To learn more about e
 Altogether, the **AppCivist-PB prototype UI** connects to both to the **AppCivist Core Platform** and the **AppCivist Voting API** to provide a full experience of configurable assembly making.
 
 To start playing with the platform, read the [Getting Started with the AppCivist Guide](https://github.com/socialappslab/appcivist-platform/docs/getting-started.md), download the source code, install the platform and run it
-
-![AppCivist alpha prototype simplified architecture](docs/images/Prototype Implementation Architecture.png)  
 
 ## Project Documentation
 
