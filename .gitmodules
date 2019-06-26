@@ -22,3 +22,9 @@
 	path = socialbus-bc-generator
 	url = https://github.com/socialappslab/socialbus-bc-generator
 	branch = master
+[submodule "appcivist-docker-compose"]
+	path = appcivist-docker-compose
+	url = https://github.com/socialappslab/appcivist-docker-compose.git
+[submodule "appcivist-patterns"]
+	path = appcivist-patterns
+	url = https://github.com/socialappslab/appcivist-patterns.git
